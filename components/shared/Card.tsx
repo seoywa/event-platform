@@ -33,7 +33,8 @@ const Card = ({
         )}
 
       </Link>
-      <Link href={`/events/${event._id}`} className='min-h-[230px] flex flex-col gap-3 p-5 md:gap-4'>
+
+      <div className='min-h-[230px] flex flex-col gap-3 p-5 md:gap-4'>
         {!hidePrice && (
         <div className='flex gap-2'>
           <span className='p-semibold-14 w-min rounded-full bg-green-100 text-green-60 px-4 py-4'>
@@ -49,9 +50,11 @@ const Card = ({
           {formatDateTime(event.startDateTime).dateTime}
         </p>
 
-        <p className='p-medium-15 md:p-medium-20 line-clamp-2 flex-1 text-black'>
-          {event.title}
-        </p>
+        <Link href={`/events/${event._id}`}>
+          <p className='p-medium-15 md:p-medium-20 line-clamp-2 flex-1 text-black'>
+            {event.title}
+          </p>
+        </Link>
 
         {hasOrderLink && (
           <Link href={`orders?eventId=${event._id}`} className='flex gap-2'>
@@ -59,7 +62,7 @@ const Card = ({
             <Image src={'/assets/icons/arrow.svg'} alt='arrow search' width={10} height={10}/>
           </Link>
         )}
-      </Link>
+      </div>
     </div>
   )
 }
