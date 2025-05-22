@@ -25,6 +25,6 @@ const OrderSchema = new Schema({
   buyer: { type: Schema.Types.ObjectId, ref: 'User' }
 })
 
-const Category = models.Order || model('Order', OrderSchema)
+const Order = models.Order || model('Order', OrderSchema)
 
-export default Category;
+export default Order;
