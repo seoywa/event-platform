@@ -24,18 +24,28 @@ import { Textarea } from "../ui/textarea";
 import FileUploader from "./FileUploader";
 import Image from "next/image";
 import { Checkbox } from "../ui/checkbox";
-import {useUploadThing} from '@/lib/uploadthing';
+import { useUploadThing } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
-import { createEvent } from "@/lib/actions/event.actions";
+import { createEvent, updateEvent } from "@/lib/actions/event.actions";
+import { IEvent } from "@/lib/database/models/event.model";
 
 type EventFormProps = {
   userId: string;
   type: "Create" | "Update";
+  event?: IEvent;
+  eventId?: string;
 };
 
-const EventForm = ({ userId, type }: EventFormProps) => {
+const EventForm = ({ userId, type, event, eventId }: EventFormProps) => {
   const router = useRouter();
-  const initialValues = eventDefaultValues;
+  const initialValues =
+    event && type === "Update"
+      ? {
+          ...event,
+          startDateTime: new Date(event.startDateTime),
+          endDateTime: new Date(event.endDateTime),
+        }
+      : eventDefaultValues;
   const [files, setFiles] = useState<File[]>([]);
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -43,7 +53,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
     defaultValues: initialValues,
   });
 
-  const { startUpload } = useUploadThing('imageUploader');
+  const { startUpload } = useUploadThing("imageUploader");
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
@@ -53,22 +63,43 @@ const EventForm = ({ userId, type }: EventFormProps) => {
       const uploadedImages = await startUpload(files);
       if (!uploadedImages) return;
 
-      uploadedImageUrl = uploadedImages[0].ufsUrl
+      uploadedImageUrl = uploadedImages[0].ufsUrl;
     }
 
-    if (type === 'Create') {
+    if (type === "Create") {
       try {
         const newEvent = await createEvent({
-          event: {...values, imageUrl: uploadedImageUrl},
+          event: { ...values, imageUrl: uploadedImageUrl },
           userId,
-          path: '/profile'
-        })
+          path: "/profile",
+        });
 
         if (newEvent) {
           form.reset();
-          router.push(`/events/${newEvent._id}`)
+          router.push(`/events/${newEvent._id}`);
         }
+      } catch (error) {
+        console.log(error);
+      }
+    }
 
+    if (type === "Update") {
+      if (!eventId) {
+        router.back();
+        return;
+      }
+
+      try {
+        const updatedEvent = await updateEvent({
+          event: { ...values, imageUrl: uploadedImageUrl, _id: eventId},
+          userId,
+          path: `/events/${eventId}`
+        });
+
+        if (updatedEvent) {
+          form.reset();
+          router.push(`/events/${updatedEvent._id}`);
+        }
       } catch (error) {
         console.log(error);
       }
@@ -122,7 +153,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
             name="description"
             render={({ field }) => (
               <FormItem className="w-full">
-                <FormControl className="h-32">
+                <FormControl className="h-72">
                   <Textarea
                     placeholder="Description"
                     className="textarea rounded-2xl"
@@ -261,7 +292,7 @@ const EventForm = ({ userId, type }: EventFormProps) => {
                       className="filter-gray"
                     />
                     <p className="ml-3 whitespace-nowrap text-gray-600">
-                      End Date:{" "}
+                      Price:{" "}
                     </p>
                     <Input
                       type="number"
